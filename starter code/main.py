@@ -1,8 +1,9 @@
 # =================================================
-# This file is where you need to create a plan to reach the goal state form the initial state
-# This file must accept any combination of with the given blocks: A, B, C, D, E
-# This file should also reach the final state of any combination with the blocks above
-# It must also display all intermediate states
+# git clone https://github.com/kevin-a-nelson/AI-Project-Blocks-World.git
+# cd starter\ code
+# python3 main.py
+#
+# Code doesn't work here for some reason. Maybe scene, state, and block.py changed?
 # =================================================
 
 import random
@@ -296,7 +297,7 @@ class KevinPlan:
 
     def printAnswer(self, state, steps, hueristicValue):
         print("\n\n===== GOAL STATE REACHED ====")
-        State.display(state, f"Step: {steps}\tH Value:{hueristicValue}")
+        State.display(state, f"Step: {steps + 1}\tH Value:{hueristicValue}")
         print("\n\n-------- H Values ---------")
         hueristicValues = self.getHueristicValuesMatrix(
             self.stateToMatrix(state))
