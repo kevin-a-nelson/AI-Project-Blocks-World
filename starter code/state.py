@@ -1,10 +1,10 @@
-###=================================================
+# =================================================
 # This file creates a list for initial and final states from the text files.
-########### Ex: [block_object_A, block_object_B, block_object_C,....]
+# Ex: [block_object_A, block_object_B, block_object_C,....]
 # It then has a display function to display the state on screen.
 # This file can also find a specific block for us
-########### Ex: find([block_object_A, block_object_B, block_object_C,....], "A")
-###=================================================
+# Ex: find([block_object_A, block_object_B, block_object_C,....], "A")
+# =================================================
 
 from scene import Scene
 from block import Block
@@ -39,11 +39,11 @@ class State:
         return f"{expr[:i_open]}{args}"
 
         #print(expr[i_open + 1: i_close].replace(' ', '').split(','))
-        #print("")
+        # print("")
 
     @staticmethod
     def display(blocks, message=""):
-        print ("\n")
+        print("\n")
         print("******************")
         print(message)
         print("******************")
@@ -72,11 +72,10 @@ class State:
             if block:
                 block.place(onto_block)
             else:
-                print (f"Blocks {id1, id2} are not defined")
+                print(f"Blocks {id1, id2} are not defined")
 
         except TypeError:
             raise ValueError(f"There is a problem with the state on{id1, id2}")
-
 
     def create_state_from_file(self, filename="input.txt"):
 
@@ -90,6 +89,3 @@ class State:
                 exec(f"self.{line}")
 
         return self.blocks
-
-
-

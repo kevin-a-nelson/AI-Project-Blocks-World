@@ -47,20 +47,6 @@ class Block:
     def clear(self):
         self.isclear = True
 
-    def __str__(self):
-        onBlock = ""
-        if self.on:
-            onBlock = self.on.id
-
-        return f"""
-        -----
-        Id:\t{self.id}
-        On:\t{onBlock}
-        clear:\t{self.isclear}
-        air:\t{self.air}
-        ----
-        """
-
     def __repr__(self):
         return self.id
 

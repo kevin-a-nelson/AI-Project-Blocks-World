@@ -25,12 +25,23 @@ class KevinPlan:
         """
         self.initial_state = initial_state
         self.goal_state = goal_state
+        self.visitedStates = []
 
     # ***=========================================
     # First implement all the operators
     # I implemented two operators to give you guys an example
     # Please implement the remainder of the operators
     # ***=========================================
+
+    def createUniqueBlockId(self, block):
+        return f"{block.type}{block.id}{block.on}{block.clear}"
+
+    def createUniqueStateId(self, state):
+        formationId = ""
+        for block in state:
+            formationId += self.createUniqueBlockId(block)
+
+        return formationId
 
     def putdown(self, block1):
         """
@@ -234,13 +245,13 @@ class KevinPlan:
             minValueForBlocksInThisColumn = 0
             for row in range(maxRow, minRow - 1, -1):
                 # Tables have a value of 0
-                if state[row][col] == "table":
-                    hueristicMatrix[row][col] = 0
-                    continue
-                # Air has a value of 0
-                elif state[row][col] == AIR:
-                    hueristicMatrix[row][col] = 0
-                    continue
+                # if state[row][col] == "table":
+                #     hueristicMatrix[row][col] = 0
+                #     continue
+                # # Air has a value of 0
+                # elif state[row][col] == AIR:
+                #     hueristicMatrix[row][col] = 0
+                #     continue
 
                 # Condition
                 # 1. Block is in the right place
@@ -248,21 +259,47 @@ class KevinPlan:
                 #
                 # Cost
                 # This block and all blocks above it get a H value of 4
-                elif state[row][col] == goal[row][col] and state[row + 1][col] != goal[row + 1][col]:
-                    minValueForBlocksInThisColumn = 4
+                # elif state[row][col] == goal[row][col] and state[row + 1][col] != goal[row + 1][col]:
+                #     minValueForBlocksInThisColumn = 4
 
                 # Condition
                 # 1. Block is not in the right place
                 #
                 # Cost
                 # This block and all blocks above it get a H value of atleast 2
-                elif state[row][col] != goal[row][col]:
-                    minValueForBlocksInThisColumn = max(
-                        minValueForBlocksInThisColumn, 2)
+                if state[row][col] != goal[row][col]:
+                    hueristicMatrix[row][col] = 1
+                else:
+                    hueristicMatrix[row][col] = 0
+                    # minValueForBlocksInThisColumn = max(
+                    #     minValueForBlocksInThisColumn, 2)
 
-                hueristicMatrix[row][col] = minValueForBlocksInThisColumn
+                # hueristicMatrix[row][col] = minValueForBlocksInThisColumn
 
         return hueristicMatrix
+
+    def blocksAreEqual(self, block1, block2):
+        if block1.type != block2.type:
+            return False
+        if block1.id != block2.id:
+            return False
+        if block1.on != block2.on:
+            return False
+        if block1.clear != block2.clear:
+            return False
+
+        return True
+
+    def statesAreEqual(self, state1, state2):
+
+        if len(state1) != len(state2):
+            return False
+
+        for i in range(len(state1)):
+            if not self.blocksAreEqual(state1[i], state2[i]):
+                return False
+
+        return True
 
     def matrixSum(self, matrix):
         sum = 0
@@ -304,27 +341,47 @@ class KevinPlan:
         self.prettyPrintMatrix(hueristicValues)
         print("\n")
 
+    def notVisited(self, state):
+        for visitedState in self.visitedStates:
+            if self.statesAreEqual(state, visitedState):
+                return False
+
+        return True
+
+    # Function to sort the list by second item of tuple
+    def sortTupleBySecondElement(self, tuple):
+
+        # reverse = None (Sorts in Ascending order)
+        # key is set to sort using second element of
+        # sublist lambda has been used
+        tuple.sort(key=lambda x: x[1])
+        return tuple
+
     def sample_plan(self):
 
-        minHueristicValue = float('inf')
-
         initialStateCopy = copy.deepcopy(self.initial_state)
-        nextEquallyBestStates = [initialStateCopy]
-
+        hueristicValue = self.getHueristicValue(initialStateCopy)
+        nextEquallyBestStates = [(initialStateCopy, hueristicValue)]
+        self.visitedStates.append(initialStateCopy)
         steps = 0
 
         while True:
 
-            # select random state amongst states with equal hueristic values
-            randomIdx = random.randint(0, len(nextEquallyBestStates) - 1)
-            nextBestState = nextEquallyBestStates[randomIdx]
+            # sort states by their hueristic value
+            self.sortTupleBySecondElement(nextEquallyBestStates)
 
-            self.printStateInfo(nextBestState, steps)
+            # get state with lowest hueristic value
+            nextBestState = nextEquallyBestStates.pop(0)
 
-            # all possible states which are one move away
-            nextPossibleStates = self.getNextPossibleStates(nextBestState)
+            # display state
+            State.display(nextBestState[0])
 
+            # get all possible next states
+            nextPossibleStates = self.getNextPossibleStates(nextBestState[0])
+
+            # loop through all possible next states
             for nextPossibleState in nextPossibleStates:
+
                 # hueristic value of possible state
                 hueristicValue = self.getHueristicValue(nextPossibleState)
 
@@ -333,14 +390,14 @@ class KevinPlan:
                     self.printAnswer(nextPossibleState, steps, hueristicValue)
                     return
 
-                # state is closer to goal state
-                if hueristicValue < minHueristicValue:
-                    minHueristicValue = hueristicValue
-                    nextEquallyBestStates = [nextPossibleState]
+                uniqueStateId = self.createUniqueStateId(nextPossibleState)
 
-                # state is equal to current best state
-                elif hueristicValue == minHueristicValue:
-                    nextEquallyBestStates.append(nextPossibleState)
+                # Add state to possible states if it is not visited
+                if uniqueStateId not in self.visitedStates:
+                    nextEquallyBestStates.append(
+                        (nextPossibleState, hueristicValue))
+
+                self.visitedStates.append(uniqueStateId)
 
             # A block is moved
             steps += 1
@@ -355,6 +412,13 @@ if __name__ == "__main__":
     # init the goal state
     goal_state = State()
     goal_state_blocks = goal_state.create_state_from_file("goal.txt")
+
+    p = KevinPlan(initial_state_blocks, goal_state_blocks)
+    # print(type(goal_state.setHueristicValue(10)))
+
+    # print(goal_state_blocks.hueristicValue)
+
+    # print(p.statesAreEqual(initial_state, goal_state))
 
     """
     Sample Plan
