@@ -10,7 +10,7 @@ import random
 from state import State
 import copy
 
-AIR = ''
+AIR = '#'
 
 
 class KevinPlan:
@@ -201,13 +201,16 @@ class KevinPlan:
     def stateToMatrix(self, state):
 
         matrix = self.createEmptyMatrix(state)
+
+        # self.prettyPrintMatrix(matrix)
+
         copyState = copy.deepcopy(state)
         self.removeBlock(copyState, "table")
 
         startCol = 0
         endCol = len(matrix[0])
         currentRow = len(matrix)
-        while copyState:
+        while copyState and currentRow > 0:
             currentRow -= 1
             for i in range(startCol, endCol):
                 for block in copyState:
@@ -244,35 +247,40 @@ class KevinPlan:
         for col in range(minCol, maxCol):
             minValueForBlocksInThisColumn = 0
             for row in range(maxRow, minRow - 1, -1):
+
                 # Tables have a value of 0
-                # if state[row][col] == "table":
-                #     hueristicMatrix[row][col] = 0
-                #     continue
-                # # Air has a value of 0
-                # elif state[row][col] == AIR:
-                #     hueristicMatrix[row][col] = 0
-                #     continue
+                if state[row][col] == "table":
+                    hueristicMatrix[row][col] = 0
+                    continue
 
-                # Condition
-                # 1. Block is in the right place
-                # 2. Block below it isn't
-                #
-                # Cost
-                # This block and all blocks above it get a H value of 4
-                # elif state[row][col] == goal[row][col] and state[row + 1][col] != goal[row + 1][col]:
-                #     minValueForBlocksInThisColumn = 4
+                # Air has a value of 0
+                elif state[row][col] == AIR:
+                    hueristicMatrix[row][col] = 0
+                    continue
 
-                # Condition
-                # 1. Block is not in the right place
-                #
-                # Cost
-                # This block and all blocks above it get a H value of atleast 2
                 if state[row][col] != goal[row][col]:
                     hueristicMatrix[row][col] = 1
                 else:
                     hueristicMatrix[row][col] = 0
-                    # minValueForBlocksInThisColumn = max(
-                    #     minValueForBlocksInThisColumn, 2)
+
+                # # Condition
+                # # 1. Block is in the right place
+                # # 2. Block below it isn't
+                # #
+                # # Cost
+                # # This block and all blocks above it get a H value of 4
+
+                # if state[row][col] == goal[row][col] and state[row + 1][col] != goal[row + 1][col]:
+                #     minValueForBlocksInThisColumn = 2
+
+                # # Condition
+                # # 1. Block is not in the right place
+                # #
+                # # Cost
+                # # This block and all blocks above it get a H value of atleast 2
+                # elif state[row][col] != goal[row][col]:
+                #     minValueForBlocksInThisColumn = max(
+                #         minValueForBlocksInThisColumn, 2)
 
                 # hueristicMatrix[row][col] = minValueForBlocksInThisColumn
 
@@ -374,7 +382,8 @@ class KevinPlan:
             nextBestState = nextEquallyBestStates.pop(0)
 
             # display state
-            State.display(nextBestState[0])
+            State.display(
+                nextBestState[0], message=f"Hueristic Value: {nextBestState[1]}")
 
             # get all possible next states
             nextPossibleStates = self.getNextPossibleStates(nextBestState[0])
@@ -414,11 +423,6 @@ if __name__ == "__main__":
     goal_state_blocks = goal_state.create_state_from_file("goal.txt")
 
     p = KevinPlan(initial_state_blocks, goal_state_blocks)
-    # print(type(goal_state.setHueristicValue(10)))
-
-    # print(goal_state_blocks.hueristicValue)
-
-    # print(p.statesAreEqual(initial_state, goal_state))
 
     """
     Sample Plan
