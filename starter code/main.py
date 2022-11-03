@@ -8,9 +8,7 @@ import random
 from state import State
 import copy
 
-
 AIR = '#'
-TRIANGLE = 2
 
 
 class KevinPlan:
@@ -75,7 +73,7 @@ class KevinPlan:
         if not block2.isclear:
             return
 
-            # stack block1 on block2
+        # stack block1 on block2
         block1.on.isclear = True
         block1.on = block2
         block1.isclear = True
@@ -143,6 +141,9 @@ class KevinPlan:
 
         return possibleState
 
+    def sortStatesByTheirHvalues(self, hi):
+        pass
+
     def getNextPossibleStates(self, state):
 
         # To go to a next possible state
@@ -162,20 +163,9 @@ class KevinPlan:
                 if clearBlock1.id == clearBlock2.id:
                     continue
 
-                # Don't stack block on a triangle
-                if clearBlock2.type == TRIANGLE:
-                    continue
-
                 # get a possible state where block1 is stacked on block2
                 possibleNextState = self.stackBlockOneOnBlockTwo(
                     clearBlock1, clearBlock2, state)
-
-                # create unique state id
-                uniqueStateId = self.createUniqueStateId(possibleNextState)
-
-                # Don't add an already visited state to next possible states
-                if uniqueStateId in self.visitedStates:
-                    continue
 
                 # add possible state to all possible states
                 possibleNextStates.append(possibleNextState)
@@ -193,6 +183,15 @@ class KevinPlan:
         matrix.append(tableRow)
 
         return matrix
+
+    def prettyPrintMatrix(self, matrix):
+
+        for idx, row in enumerate(matrix):
+            if idx == len(matrix) - 1:
+                break
+            print("\n")
+            for col in row:
+                print(col, end="\t")
 
     def removeBlock(self, state, blockToRemove):
         for idx, block in enumerate(state):
@@ -226,6 +225,10 @@ class KevinPlan:
 
         return matrix
 
+    def blocksAreEqual(self, block1, block2):
+        if block1.type != block2.type:
+            return False
+
     def getHueristicValuesMatrix(self, state):
 
         # goal state as 2D array
@@ -241,7 +244,6 @@ class KevinPlan:
         minCol = 0
 
         for col in range(minCol, maxCol):
-            minValueForBlocksInThisColumn = 0
             for row in range(maxRow, minRow - 1, -1):
 
                 # Tables have a value of 0
@@ -254,13 +256,10 @@ class KevinPlan:
                     hueristicMatrix[row][col] = 0
                     continue
 
-                # if block is in the same place a goal state, its H value is 0
-                if state[row][col] == goal[row][col]:
-                    hueristicMatrix[row][col] = 0
-
-                # if block is not in the same place as its goal stat, its H value is 1
-                else:
+                if state[row][col] != goal[row][col]:
                     hueristicMatrix[row][col] = 1
+                else:
+                    hueristicMatrix[row][col] = 0
 
         return hueristicMatrix
 
@@ -292,30 +291,6 @@ class KevinPlan:
         tuple.sort(key=lambda x: x[1])
         return tuple
 
-    def prettyPrintMatrix(self, matrix):
-
-        for idx, row in enumerate(matrix):
-            if idx == len(matrix) - 1:
-                break
-            print("\n")
-            for col in row:
-                print(col, end="\t")
-
-    def printHueristicValuesOfBlocks(self, state):
-        # get all possible next states
-        nextPossibleStates = self.getNextPossibleStates(state)
-
-        # creates blocks world as 2D array
-        stateMatrix = self.stateToMatrix(state)
-
-        # 2D array representing the H value of each block
-        hueristicValuesMatrix = self.getHueristicValuesMatrix(stateMatrix)
-        print("---")
-        print("Hueristic Value of each block")
-        print("---")
-        self.prettyPrintMatrix(hueristicValuesMatrix)
-        print("\n")
-
     def sample_plan(self):
 
         # initialize
@@ -323,13 +298,9 @@ class KevinPlan:
         hueristicValue = self.getHueristicValue(initialStateCopy)
         nextEquallyBestStates = [(initialStateCopy, hueristicValue)]
         self.visitedStates.append(initialStateCopy)
-        moves = 0
+        steps = 0
 
         while True:
-
-            # =============
-            # get best state
-            # =============
 
             # sort states by their hueristic value
             self.sortTupleBySecondElement(nextEquallyBestStates)
@@ -337,23 +308,12 @@ class KevinPlan:
             # get state with lowest hueristic value
             nextBestState = nextEquallyBestStates.pop(0)
 
-            # =============
-            # Print info on state
-            # =============
-
             # display state
             State.display(
-                nextBestState[0], message=f"Hueristic Value: {nextBestState[1]}\tNumber of Moves: {moves}")
-
-            # display H values of each block in a matrix
-            self.printHueristicValuesOfBlocks(nextBestState[0])
+                nextBestState[0], message=f"Hueristic Value: {nextBestState[1]}\tNumber of Moves: {steps}")
 
             # get all possible next states
             nextPossibleStates = self.getNextPossibleStates(nextBestState[0])
-
-            # =============
-            # Calculate H values of states and add them to queue of states to explore
-            # =============
 
             # loop through all possible next states
             for nextPossibleState in nextPossibleStates:
@@ -364,8 +324,7 @@ class KevinPlan:
                 # state is goal state
                 if hueristicValue == 0:
                     State.display(
-                        nextPossibleState, message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tNumber of Moves: {moves}")
-
+                        nextPossibleState, message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tNumber of Moves: {steps}")
                     return
 
                 uniqueStateId = self.createUniqueStateId(nextPossibleState)
@@ -378,7 +337,7 @@ class KevinPlan:
                 self.visitedStates.append(uniqueStateId)
 
             # A block is moved
-            moves += 1
+            steps += 1
 
 
 if __name__ == "__main__":

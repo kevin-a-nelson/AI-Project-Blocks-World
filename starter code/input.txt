@@ -4,7 +4,7 @@ square(C)
 square(D)
 square(E)
 square(F)
-triangle(G)
+square(G)
 
 on(E, table)
 on(A, table)
