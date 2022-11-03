@@ -73,7 +73,11 @@ class KevinPlan:
         if not block2.isclear:
             return
 
-        # stack block1 on block2
+        # if block is triangle don't stack a block on it
+        if block2.type == 2:
+            return
+
+            # stack block1 on block2
         block1.on.isclear = True
         block1.on = block2
         block1.isclear = True
