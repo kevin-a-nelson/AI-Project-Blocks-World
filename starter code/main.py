@@ -327,11 +327,19 @@ class KevinPlan:
 
         while True:
 
+            # =============
+            # get best state
+            # =============
+
             # sort states by their hueristic value
             self.sortTupleBySecondElement(nextEquallyBestStates)
 
             # get state with lowest hueristic value
             nextBestState = nextEquallyBestStates.pop(0)
+
+            # =============
+            # Print info on state
+            # =============
 
             # display state
             State.display(
@@ -342,6 +350,10 @@ class KevinPlan:
 
             # get all possible next states
             nextPossibleStates = self.getNextPossibleStates(nextBestState[0])
+
+            # =============
+            # Calculate H values of states and add them to queue of states to explore
+            # =============
 
             # loop through all possible next states
             for nextPossibleState in nextPossibleStates:
