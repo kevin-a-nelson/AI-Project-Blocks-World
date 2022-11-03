@@ -8,7 +8,9 @@ import random
 from state import State
 import copy
 
+
 AIR = '#'
+TRIANGLE = 2
 
 
 class KevinPlan:
@@ -71,10 +73,6 @@ class KevinPlan:
 
         # block2 cannot have a block stacked on top of it if it already has a block ontop
         if not block2.isclear:
-            return
-
-        # if block is triangle don't stack a block on it
-        if block2.type == 2:
             return
 
             # stack block1 on block2
@@ -162,6 +160,10 @@ class KevinPlan:
 
                 # Don't stack a block on itself
                 if clearBlock1.id == clearBlock2.id:
+                    continue
+
+                # Don't stack block on a triangle
+                if clearBlock2.type == TRIANGLE:
                     continue
 
                 # get a possible state where block1 is stacked on block2
