@@ -296,24 +296,24 @@ class KevinPlan:
         # initialize
         initialStateCopy = copy.deepcopy(self.initial_state)
         hueristicValue = self.getHueristicValue(initialStateCopy)
-        nextEquallyBestStates = [(initialStateCopy, hueristicValue)]
+        unvisitedStates = [(initialStateCopy, hueristicValue)]
         self.visitedStates.append(initialStateCopy)
         steps = 0
 
         while True:
 
             # sort states by their hueristic value
-            self.sortTupleBySecondElement(nextEquallyBestStates)
+            self.sortTupleBySecondElement(unvisitedStates)
 
             # get state with lowest hueristic value
-            nextBestState = nextEquallyBestStates.pop(0)
+            bestState = unvisitedStates.pop(0)
 
             # display state
             State.display(
-                nextBestState[0], message=f"Hueristic Value: {nextBestState[1]}\tNumber of Moves: {steps}")
+                bestState[0], message=f"Hueristic Value: {bestState[1]}\tNumber of Moves: {steps}")
 
             # get all possible next states
-            nextPossibleStates = self.getNextPossibleStates(nextBestState[0])
+            nextPossibleStates = self.getNextPossibleStates(bestState[0])
 
             # loop through all possible next states
             for nextPossibleState in nextPossibleStates:
@@ -331,7 +331,7 @@ class KevinPlan:
 
                 # Add state to possible states if it is not visited
                 if uniqueStateId not in self.visitedStates:
-                    nextEquallyBestStates.append(
+                    unvisitedStates.append(
                         (nextPossibleState, hueristicValue))
 
                 self.visitedStates.append(uniqueStateId)
