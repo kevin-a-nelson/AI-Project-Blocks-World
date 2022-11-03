@@ -2,8 +2,6 @@
 # git clone https://github.com/kevin-a-nelson/AI-Project-Blocks-World.git
 # cd starter\ code
 # python3 main.py
-#
-# Code doesn't work here for some reason. Maybe scene, state, and block.py changed?
 # =================================================
 
 import random
@@ -202,8 +200,6 @@ class KevinPlan:
 
         matrix = self.createEmptyMatrix(state)
 
-        # self.prettyPrintMatrix(matrix)
-
         copyState = copy.deepcopy(state)
         self.removeBlock(copyState, "table")
 
@@ -245,7 +241,6 @@ class KevinPlan:
         minCol = 0
 
         for col in range(minCol, maxCol):
-            minValueForBlocksInThisColumn = 0
             for row in range(maxRow, minRow - 1, -1):
 
                 # Tables have a value of 0
@@ -263,51 +258,7 @@ class KevinPlan:
                 else:
                     hueristicMatrix[row][col] = 0
 
-                # # Condition
-                # # 1. Block is in the right place
-                # # 2. Block below it isn't
-                # #
-                # # Cost
-                # # This block and all blocks above it get a H value of 4
-
-                # if state[row][col] == goal[row][col] and state[row + 1][col] != goal[row + 1][col]:
-                #     minValueForBlocksInThisColumn = 2
-
-                # # Condition
-                # # 1. Block is not in the right place
-                # #
-                # # Cost
-                # # This block and all blocks above it get a H value of atleast 2
-                # elif state[row][col] != goal[row][col]:
-                #     minValueForBlocksInThisColumn = max(
-                #         minValueForBlocksInThisColumn, 2)
-
-                # hueristicMatrix[row][col] = minValueForBlocksInThisColumn
-
         return hueristicMatrix
-
-    def blocksAreEqual(self, block1, block2):
-        if block1.type != block2.type:
-            return False
-        if block1.id != block2.id:
-            return False
-        if block1.on != block2.on:
-            return False
-        if block1.clear != block2.clear:
-            return False
-
-        return True
-
-    def statesAreEqual(self, state1, state2):
-
-        if len(state1) != len(state2):
-            return False
-
-        for i in range(len(state1)):
-            if not self.blocksAreEqual(state1[i], state2[i]):
-                return False
-
-        return True
 
     def matrixSum(self, matrix):
         sum = 0
@@ -315,9 +266,6 @@ class KevinPlan:
             for col in row:
                 sum += col
         return sum
-
-    def prettyPrintState(self, state):
-        self.prettyPrintMatrix(self.stateToMatrix(state))
 
     def getHueristicValue(self, state):
         # creates blocks world as 2D array
@@ -331,31 +279,6 @@ class KevinPlan:
 
         return hueristicValue
 
-    def printStateInfo(self, state, steps):
-        hueristicValues = self.getHueristicValuesMatrix(
-            self.stateToMatrix(state))
-        hueristicValue = self.matrixSum(hueristicValues)
-        print("\n\n==== NEXT BEST STATE ====\n")
-        State.display(state, f"Step: {steps}\tH Value:{hueristicValue}")
-        print("\n\n-------- H Values ---------")
-        self.prettyPrintMatrix(hueristicValues)
-
-    def printAnswer(self, state, steps, hueristicValue):
-        print("\n\n===== GOAL STATE REACHED ====")
-        State.display(state, f"Step: {steps + 1}\tH Value:{hueristicValue}")
-        print("\n\n-------- H Values ---------")
-        hueristicValues = self.getHueristicValuesMatrix(
-            self.stateToMatrix(state))
-        self.prettyPrintMatrix(hueristicValues)
-        print("\n")
-
-    def notVisited(self, state):
-        for visitedState in self.visitedStates:
-            if self.statesAreEqual(state, visitedState):
-                return False
-
-        return True
-
     # Function to sort the list by second item of tuple
     def sortTupleBySecondElement(self, tuple):
 
@@ -367,6 +290,7 @@ class KevinPlan:
 
     def sample_plan(self):
 
+        # initialize
         initialStateCopy = copy.deepcopy(self.initial_state)
         hueristicValue = self.getHueristicValue(initialStateCopy)
         nextEquallyBestStates = [(initialStateCopy, hueristicValue)]
@@ -383,7 +307,7 @@ class KevinPlan:
 
             # display state
             State.display(
-                nextBestState[0], message=f"Hueristic Value: {nextBestState[1]}")
+                nextBestState[0], message=f"Hueristic Value: {nextBestState[1]}\tNumber of Moves: {steps}")
 
             # get all possible next states
             nextPossibleStates = self.getNextPossibleStates(nextBestState[0])
@@ -396,7 +320,8 @@ class KevinPlan:
 
                 # state is goal state
                 if hueristicValue == 0:
-                    self.printAnswer(nextPossibleState, steps, hueristicValue)
+                    State.display(
+                        nextPossibleState, message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tNumber of Moves: {steps}")
                     return
 
                 uniqueStateId = self.createUniqueStateId(nextPossibleState)
