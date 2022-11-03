@@ -170,6 +170,13 @@ class KevinPlan:
                 possibleNextState = self.stackBlockOneOnBlockTwo(
                     clearBlock1, clearBlock2, state)
 
+                # create unique state id
+                uniqueStateId = self.createUniqueStateId(possibleNextState)
+
+                # Don't add an already visited state to next possible states
+                if uniqueStateId in self.visitedStates:
+                    continue
+
                 # add possible state to all possible states
                 possibleNextStates.append(possibleNextState)
 
@@ -186,15 +193,6 @@ class KevinPlan:
         matrix.append(tableRow)
 
         return matrix
-
-    def prettyPrintMatrix(self, matrix):
-
-        for idx, row in enumerate(matrix):
-            if idx == len(matrix) - 1:
-                break
-            print("\n")
-            for col in row:
-                print(col, end="\t")
 
     def removeBlock(self, state, blockToRemove):
         for idx, block in enumerate(state):
@@ -228,10 +226,6 @@ class KevinPlan:
 
         return matrix
 
-    def blocksAreEqual(self, block1, block2):
-        if block1.type != block2.type:
-            return False
-
     def getHueristicValuesMatrix(self, state):
 
         # goal state as 2D array
@@ -247,6 +241,7 @@ class KevinPlan:
         minCol = 0
 
         for col in range(minCol, maxCol):
+            minValueForBlocksInThisColumn = 0
             for row in range(maxRow, minRow - 1, -1):
 
                 # Tables have a value of 0
@@ -259,10 +254,13 @@ class KevinPlan:
                     hueristicMatrix[row][col] = 0
                     continue
 
-                if state[row][col] != goal[row][col]:
-                    hueristicMatrix[row][col] = 1
-                else:
+                # if block is in the same place a goal state, its H value is 0
+                if state[row][col] == goal[row][col]:
                     hueristicMatrix[row][col] = 0
+
+                # if block is not in the same place as its goal stat, its H value is 1
+                else:
+                    hueristicMatrix[row][col] = 1
 
         return hueristicMatrix
 
@@ -294,6 +292,30 @@ class KevinPlan:
         tuple.sort(key=lambda x: x[1])
         return tuple
 
+    def prettyPrintMatrix(self, matrix):
+
+        for idx, row in enumerate(matrix):
+            if idx == len(matrix) - 1:
+                break
+            print("\n")
+            for col in row:
+                print(col, end="\t")
+
+    def printHueristicValuesOfBlocks(self, state):
+        # get all possible next states
+        nextPossibleStates = self.getNextPossibleStates(state)
+
+        # creates blocks world as 2D array
+        stateMatrix = self.stateToMatrix(state)
+
+        # 2D array representing the H value of each block
+        hueristicValuesMatrix = self.getHueristicValuesMatrix(stateMatrix)
+        print("---")
+        print("Hueristic Value of each block")
+        print("---")
+        self.prettyPrintMatrix(hueristicValuesMatrix)
+        print("\n")
+
     def sample_plan(self):
 
         # initialize
@@ -301,7 +323,7 @@ class KevinPlan:
         hueristicValue = self.getHueristicValue(initialStateCopy)
         nextEquallyBestStates = [(initialStateCopy, hueristicValue)]
         self.visitedStates.append(initialStateCopy)
-        steps = 0
+        moves = 0
 
         while True:
 
@@ -313,7 +335,10 @@ class KevinPlan:
 
             # display state
             State.display(
-                nextBestState[0], message=f"Hueristic Value: {nextBestState[1]}\tNumber of Moves: {steps}")
+                nextBestState[0], message=f"Hueristic Value: {nextBestState[1]}\tNumber of Moves: {moves}")
+
+            # display H values of each block in a matrix
+            self.printHueristicValuesOfBlocks(nextBestState[0])
 
             # get all possible next states
             nextPossibleStates = self.getNextPossibleStates(nextBestState[0])
@@ -327,7 +352,8 @@ class KevinPlan:
                 # state is goal state
                 if hueristicValue == 0:
                     State.display(
-                        nextPossibleState, message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tNumber of Moves: {steps}")
+                        nextPossibleState, message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tNumber of Moves: {moves}")
+
                     return
 
                 uniqueStateId = self.createUniqueStateId(nextPossibleState)
@@ -340,7 +366,7 @@ class KevinPlan:
                 self.visitedStates.append(uniqueStateId)
 
             # A block is moved
-            steps += 1
+            moves += 1
 
 
 if __name__ == "__main__":
