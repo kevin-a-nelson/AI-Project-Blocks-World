@@ -75,6 +75,9 @@ class KevinPlan:
         if not block1.isclear:
             return
 
+        if block2.type == 2:
+            return
+
         # if block2 is table, stack block1 on table
         if block2.id == "table":
             self.putdown(block1, block2)
