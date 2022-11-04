@@ -56,6 +56,19 @@ class KevinPlan:
             block1.on = table
             block1.clear = True
 
+    def putdown(self, block1, block2):
+        block1.on.isclear = True
+        block1.on = block2
+        block1.isclear = True
+        return f"putdown({block1.id}, {block2.id})"
+
+    # def stack(self, block1, block2):
+    #     block1.on.isclear = True
+    #     block1.on = block2
+    #     block1.isclear = True
+    #     block2.isclear = False
+    #     return f"stack({block1.id}, {block2.id})"
+
     def stack(self, block1, block2):
 
         # block1 cannot be move if it has a block on top
@@ -64,9 +77,7 @@ class KevinPlan:
 
         # if block2 is table, stack block1 on table
         if block2.id == "table":
-            block1.on.isclear = True
-            block1.on = block2
-            block1.isclear = True
+            self.putdown(block1, block2)
             return
 
         # block2 cannot have a block stacked on top of it if it already has a block ontop
@@ -98,7 +109,6 @@ class KevinPlan:
             block1.isclear = False
             block1.air = True
             block1.on = None
-
             block2.isclear = True
 
     # ***=========================================
