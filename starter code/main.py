@@ -62,14 +62,14 @@ class KevinPlan:
         block1.isclear = True
         return f"putdown({block1.id}, {block2.id})"
 
-    # def stack(self, block1, block2):
-    #     block1.on.isclear = True
-    #     block1.on = block2
-    #     block1.isclear = True
-    #     block2.isclear = False
-    #     return f"stack({block1.id}, {block2.id})"
-
     def stack(self, block1, block2):
+        block1.on.isclear = True
+        block1.on = block2
+        block1.isclear = True
+        block2.isclear = False
+        return f"upstack({block1.id}, {block2.id})"
+
+    def moveBlocks(self, block1, block2):
 
         # block1 cannot be move if it has a block on top
         if not block1.isclear:
@@ -78,17 +78,15 @@ class KevinPlan:
         # if block2 is table, stack block1 on table
         if block2.id == "table":
             self.putdown(block1, block2)
-            return
+            return f"putdown({block1.id}, {block2.id})"
 
         # block2 cannot have a block stacked on top of it if it already has a block ontop
         if not block2.isclear:
             return
 
         # stack block1 on block2
-        block1.on.isclear = True
-        block1.on = block2
-        block1.isclear = True
-        block2.isclear = False
+        self.stack(block1, block2)
+        return f"stack({block1.id}, {block2.id})"
 
     def unstack(self, block1, block2):
         """
@@ -147,9 +145,9 @@ class KevinPlan:
             possibleState["state"], clearBlock2.id)
 
         # stack block1 on block2
-        self.stack(copyClearBlock1, copyClearBlock2)
+        move = self.moveBlocks(copyClearBlock1, copyClearBlock2)
 
-        return possibleState
+        return possibleState, move
 
     def sortStatesByTheirHvalues(self, hi):
         pass
@@ -174,7 +172,7 @@ class KevinPlan:
                     continue
 
                 # get a possible state where block1 is stacked on block2
-                possibleNextState = self.stackBlockOneOnBlockTwo(
+                possibleNextState, move = self.stackBlockOneOnBlockTwo(
                     clearBlock1, clearBlock2, state)
 
                 uniqueStateId = self.createUniqueStateId(
@@ -187,10 +185,13 @@ class KevinPlan:
                 self.visitedStates.append(uniqueStateId)
 
                 path = copy.deepcopy(state["path"])
+                moves = copy.deepcopy(state["moves"])
+                moves.append(move)
 
-                path.append(f"stack({clearBlock1.id, clearBlock2.id})")
+                path.append(possibleNextState["state"])
 
                 possibleNextState["path"] = path
+                possibleNextState["moves"] = moves
 
                 # add possible state to all possible states
                 possibleNextStates.append(possibleNextState)
@@ -325,7 +326,8 @@ class KevinPlan:
         initialUnvisitedState = {
             "state": initialStateCopy,
             "hueristic": hueristicValue,
-            "path": [],
+            "moves": ["Initial State"],
+            "path": [initialStateCopy]
         }
 
         unvisitedStates = [initialUnvisitedState]
@@ -341,8 +343,11 @@ class KevinPlan:
             bestState = unvisitedStates.pop(0)
 
             # display state
-            State.display(
-                bestState["state"], message=f"Hueristic Value: {bestState['hueristic']}\tExplored States: {len(self.visitedStates)}\tPath: {len(bestState['path'])}")
+
+            print(
+                f"Hueristic Value: {bestState['hueristic']}\tExplored Unique States so far: {len(self.visitedStates)}")
+            # State.display(
+            #     bestState["state"], message=f"Hueristic Value: {bestState['hueristic']}\tExplored States: {len(self.visitedStates)}\tPath: {len(bestState['path'])}")
 
             # get all possible next states
             nextPossibleStates = self.getNextPossibleStates(bestState)
@@ -356,9 +361,16 @@ class KevinPlan:
 
                 # state is goal state
                 if hueristicValue == 0:
-                    State.display(
-                        nextPossibleState["state"], message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tExplored States: {len(self.visitedStates)}")
-                    print(f"Path: {' -> '.join(nextPossibleState['path'])}")
+                    # State.display(
+                    #     nextPossibleState["state"], message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tExplored States: {len(self.visitedStates)}")
+                    # print(f"move: {' -> '.join(nextPossibleState['move'])}")
+
+                    for i in range(len(nextPossibleState["path"])):
+                        State.display(
+                            nextPossibleState["path"][i], message=nextPossibleState["moves"][i])
+                    # for state in nextPossibleState["path"]:
+                    #     State.display(state)
+
                     return
 
                 uniqueStateId = self.createUniqueStateId(
