@@ -130,11 +130,11 @@ class KevinPlan:
 
         # get block1
         copyClearBlock1 = self.getBlockWithId(
-            possibleState, clearBlock1.id)
+            possibleState["state"], clearBlock1.id)
 
         # get block2
         copyClearBlock2 = self.getBlockWithId(
-            possibleState, clearBlock2.id)
+            possibleState["state"], clearBlock2.id)
 
         # stack block1 on block2
         self.stack(copyClearBlock1, copyClearBlock2)
@@ -148,7 +148,7 @@ class KevinPlan:
 
         # To go to a next possible state
         # You move a clear block onto another clear block
-        clearBlocks = self.getClearBlocks(state)
+        clearBlocks = self.getClearBlocks(state["state"])
 
         possibleNextStates = []
 
@@ -166,6 +166,21 @@ class KevinPlan:
                 # get a possible state where block1 is stacked on block2
                 possibleNextState = self.stackBlockOneOnBlockTwo(
                     clearBlock1, clearBlock2, state)
+
+                uniqueStateId = self.createUniqueStateId(
+                    possibleNextState["state"])
+
+                # Add state to possible states if it is not visited
+                if uniqueStateId in self.visitedStates:
+                    continue
+
+                self.visitedStates.append(uniqueStateId)
+
+                path = copy.deepcopy(state["path"])
+
+                path.append(f"stack({clearBlock1.id, clearBlock2.id})")
+
+                possibleNextState["path"] = path
 
                 # add possible state to all possible states
                 possibleNextStates.append(possibleNextState)
@@ -296,48 +311,52 @@ class KevinPlan:
         # initialize
         initialStateCopy = copy.deepcopy(self.initial_state)
         hueristicValue = self.getHueristicValue(initialStateCopy)
-        unvisitedStates = [(initialStateCopy, hueristicValue)]
+
+        initialUnvisitedState = {
+            "state": initialStateCopy,
+            "hueristic": hueristicValue,
+            "path": [],
+        }
+
+        unvisitedStates = [initialUnvisitedState]
         self.visitedStates.append(initialStateCopy)
-        steps = 0
 
         while True:
 
             # sort states by their hueristic value
-            self.sortTupleBySecondElement(unvisitedStates)
+            newlist = sorted(
+                unvisitedStates, key=lambda state: state['hueristic'])
 
             # get state with lowest hueristic value
             bestState = unvisitedStates.pop(0)
 
             # display state
             State.display(
-                bestState[0], message=f"Hueristic Value: {bestState[1]}\tNumber of Moves: {steps}")
+                bestState["state"], message=f"Hueristic Value: {bestState['hueristic']}\tExplored States: {len(self.visitedStates)}\tPath: {len(bestState['path'])}")
 
             # get all possible next states
-            nextPossibleStates = self.getNextPossibleStates(bestState[0])
+            nextPossibleStates = self.getNextPossibleStates(bestState)
 
             # loop through all possible next states
             for nextPossibleState in nextPossibleStates:
 
                 # hueristic value of possible state
-                hueristicValue = self.getHueristicValue(nextPossibleState)
+                hueristicValue = self.getHueristicValue(
+                    nextPossibleState["state"])
 
                 # state is goal state
                 if hueristicValue == 0:
                     State.display(
-                        nextPossibleState, message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tNumber of Moves: {steps}")
+                        nextPossibleState["state"], message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tExplored States: {len(self.visitedStates)}")
+                    print(f"Path: {' -> '.join(nextPossibleState['path'])}")
                     return
 
-                uniqueStateId = self.createUniqueStateId(nextPossibleState)
+                uniqueStateId = self.createUniqueStateId(
+                    nextPossibleState["state"])
 
-                # Add state to possible states if it is not visited
-                if uniqueStateId not in self.visitedStates:
-                    unvisitedStates.append(
-                        (nextPossibleState, hueristicValue))
+                unvisitedStates.append(nextPossibleState)
 
-                self.visitedStates.append(uniqueStateId)
-
-            # A block is moved
-            steps += 1
+                # self.visitedStates.append(uniqueStateId)
 
 
 if __name__ == "__main__":
