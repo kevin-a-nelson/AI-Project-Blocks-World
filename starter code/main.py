@@ -285,6 +285,12 @@ class KevinPlan:
                     hueristicMatrix[row][col] = 0
                     continue
 
+                # everything is now a block
+
+                if hueristicMatrix[row + 1][col] >= 1:
+                    hueristicMatrix[row][col] = 1
+                    continue
+
                 if state[row][col] != goal[row][col]:
                     hueristicMatrix[row][col] = 1
                 else:
@@ -339,18 +345,16 @@ class KevinPlan:
         while True:
 
             # sort states by their hueristic value
-            newlist = sorted(
+            unvisitedStates = sorted(
                 unvisitedStates, key=lambda state: state['hueristic'])
 
             # get state with lowest hueristic value
             bestState = unvisitedStates.pop(0)
 
+            print("\n" * 50)
             # display state
-
             print(
                 f"Hueristic Value: {bestState['hueristic']}\tExplored Unique States so far: {len(self.visitedStates)}")
-            # State.display(
-            #     bestState["state"], message=f"Hueristic Value: {bestState['hueristic']}\tExplored States: {len(self.visitedStates)}\tPath: {len(bestState['path'])}")
 
             # get all possible next states
             nextPossibleStates = self.getNextPossibleStates(bestState)
@@ -364,24 +368,22 @@ class KevinPlan:
 
                 # state is goal state
                 if hueristicValue == 0:
-                    # State.display(
-                    #     nextPossibleState["state"], message=f"Goal State Reached!!! Hueristic Value: {hueristicValue}\tExplored States: {len(self.visitedStates)}")
-                    # print(f"move: {' -> '.join(nextPossibleState['move'])}")
 
                     for i in range(len(nextPossibleState["path"])):
                         State.display(
                             nextPossibleState["path"][i], message=nextPossibleState["moves"][i])
-                    # for state in nextPossibleState["path"]:
-                    #     State.display(state)
 
+                    print("\n\n******************")
+                    print("Goal state reached!")
+                    print("******************")
+                    print("\n")
+                    print(f"Path: {' -> '.join(nextPossibleState['moves'])}")
+                    print(f"Path Length: {len(nextPossibleState['moves'])}")
+                    print(f"Unique states visited: {len(self.visitedStates)}")
+                    print("\n\n")
                     return
 
-                uniqueStateId = self.createUniqueStateId(
-                    nextPossibleState["state"])
-
                 unvisitedStates.append(nextPossibleState)
-
-                # self.visitedStates.append(uniqueStateId)
 
 
 if __name__ == "__main__":
